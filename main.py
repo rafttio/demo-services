@@ -18,7 +18,7 @@ class DataConnector:
         """Connect to PostgreSQL database"""
         try:
             self.postgres_conn = psycopg2.connect(
-                host=os.getenv("POSTGRES_HOST", "lala"),
+                host=os.getenv("POSTGRES_HOST", "localhost"),
                 port=os.getenv("POSTGRES_PORT", "5432"),
                 database=os.getenv("POSTGRES_DB", "postgres"),
                 user=os.getenv("POSTGRES_USER", "postgres"),
@@ -37,7 +37,6 @@ class DataConnector:
             self.redis_client = redis.Redis(
                 host=os.getenv("CACHE_HOST", "localhost"),
                 port=int(os.getenv("CACHE_PORT", "6379")),
-                password=os.getenv("CACHE_PASSWORD", ""),
                 db=int(os.getenv("CACHE_DB_NAME", "0")),
                 decode_responses=True
             )
