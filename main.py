@@ -3,6 +3,7 @@ import psycopg2
 import redis
 import boto3
 from dotenv import load_dotenv
+import time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -159,55 +160,58 @@ class DataConnector:
 
 
 def main():
-    """Main function to demonstrate usage"""
-    # Create .env file first or set environment variables
-    connector = DataConnector()
-    
-    # Connect to all services
-    pg_status = connector.connect_postgres()
-    redis_status = connector.connect_redis()
-    s3_status = connector.connect_s3()
-    
-    if pg_status:
-        # Example: Create a table
-        connector.execute_postgres_query("""
-            CREATE TABLE IF NOT EXISTS examples (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(100) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    while True:
+        """Main function to demonstrate usage"""
+        # Create .env file first or set environment variables
+        connector = DataConnector()
+        
+        # Connect to all services
+        pg_status = connector.connect_postgres()
+        redis_status = connector.connect_redis()
+        s3_status = connector.connect_s3()
+        
+        if pg_status:
+            # Example: Create a table
+            connector.execute_postgres_query("""
+                CREATE TABLE IF NOT EXISTS examples (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            # Example: Insert data
+            connector.execute_postgres_query(
+                "INSERT INTO examples (name) VALUES (%s)", ("test_item",)
             )
-        """)
+            
+            # Example: Query data
+            results = connector.execute_postgres_query("SELECT * FROM examples")
+            print(f"PostgreSQL query results: {results}")
         
-        # Example: Insert data
-        connector.execute_postgres_query(
-            "INSERT INTO examples (name) VALUES (%s)", ("test_item",)
-        )
+        if redis_status:
+            # Example: Set and get cache
+            connector.set_redis_value("example_key", "example_value", expiry=3600)
+            value = connector.get_redis_value("example_key")
+            print(f"Redis cached value: {value}")
         
-        # Example: Query data
-        results = connector.execute_postgres_query("SELECT * FROM examples")
-        print(f"PostgreSQL query results: {results}")
-    
-    if redis_status:
-        # Example: Set and get cache
-        connector.set_redis_value("example_key", "example_value", expiry=3600)
-        value = connector.get_redis_value("example_key")
-        print(f"Redis cached value: {value}")
-    
-    if s3_status:
-        # Example: Create a test file and upload to S3
-        # Note: You need to create or specify an existing bucket
-        bucket_name = os.getenv("S3_BUCKET_NAME", "example-bucket")
+        if s3_status:
+            # Example: Create a test file and upload to S3
+            # Note: You need to create or specify an existing bucket
+            bucket_name = os.getenv("S3_BUCKET_NAME", "example-bucket")
+            
+            with open("test_file.txt", "w") as f:
+                f.write("This is a test file for S3 upload")
+            
+            connector.upload_to_s3("test_file.txt", bucket_name)
+            
+            # Example: Download from S3
+            connector.download_from_s3(bucket_name, "test_file.txt", "downloaded_test_file.txt")
         
-        with open("test_file.txt", "w") as f:
-            f.write("This is a test file for S3 upload")
-        
-        connector.upload_to_s3("test_file.txt", bucket_name)
-        
-        # Example: Download from S3
-        connector.download_from_s3(bucket_name, "test_file.txt", "downloaded_test_file.txt")
-    
-    # Close all connections
-    connector.close_connections()
+        # Close all connections
+        connector.close_connections()
+        print("---------------------------------------------------------------------------------------")
+        time.sleep(3)
 
 if __name__ == '__main__':
     main()

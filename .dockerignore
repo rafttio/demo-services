@@ -1,0 +1,7 @@
+.env
+venv
+.gitignore
+*.raftt
+raftt.yml
+README.md
+.dockerignore

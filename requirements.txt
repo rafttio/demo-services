@@ -3,7 +3,7 @@ boto3==1.37.10
 botocore==1.37.10
 dotenv==0.9.9
 jmespath==1.0.1
-psycopg2==2.9.10
+psycopg2-binary==2.9.10
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 redis==5.2.1
